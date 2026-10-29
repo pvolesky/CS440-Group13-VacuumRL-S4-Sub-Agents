@@ -1,0 +1,1 @@
+- Hard rule: the agent never sees T or R. Only reset()/step() outputs cross the boundary; info dict must not carry model internals. Delegate checks to `rl-reviewer` (read-only).

@@ -1,0 +1,1 @@
+- Exploration: agent must keep visiting all reachable states; decay must not hit zero too early. See skill `q-learning-procedure`, concept GLIE in `aima-rl-reference`. Delegate to `q-learning-implementer`.

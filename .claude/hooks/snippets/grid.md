@@ -1,0 +1,1 @@
+- Grid: 4x4, (row, col), row 0 top; start (0,0), X (1,1), -1 (3,1), +10 (3,3). Semantics of X/terminals are Open (D1, D2). Load skill `gridworld-spec`; delegate to `env-designer`.

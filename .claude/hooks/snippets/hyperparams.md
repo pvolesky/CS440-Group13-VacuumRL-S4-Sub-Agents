@@ -1,0 +1,1 @@
+- Hyperparameters: change one at a time, multiple seeds. Discount/learning-rate values are Open (D3). See skills `experiment-protocol` and `rl-debugging-checklist`.

@@ -1,0 +1,1 @@
+- Experiments: record seed, config, git commit; >=5 seeds; evaluate greedy policy separately. Load skill `experiment-protocol`; delegate to `experiment-runner`.

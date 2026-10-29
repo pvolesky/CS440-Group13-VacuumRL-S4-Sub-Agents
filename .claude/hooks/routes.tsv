@@ -1,0 +1,9 @@
+# regex (case-insensitive)	snippet file
+epsilon|explor|greedy|decay	exploration.md
+reward|penalt|step cost|shaping	reward.md
+alpha|learning rate|gamma|discount|hyperparam	hyperparams.md
+leak|transition|T and R|T/R|model-free|boundary	boundary.md
+seed|reproduc|sweep|experiment|benchmark	experiments.md
+grid|wall|obstacle|terminal|state index|coordinate	grid.md
+pytest|test|ruff|lint	testing.md
+aima|textbook|russell|norvig|chapter	aima.md

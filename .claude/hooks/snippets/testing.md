@@ -1,0 +1,1 @@
+- Testing: `pytest` and `ruff check .` from repo root. Test files are currently docstring-only stubs. Do not write implementations unless explicitly asked.
