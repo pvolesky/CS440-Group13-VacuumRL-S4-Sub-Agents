@@ -1,1 +1,0 @@
-- Rewards/penalties: step cost, terminal semantics, and discount are Open in docs/DECISIONS.md (D2, D3). Ask the user before assuming values. Reward shaping changes the optimal policy; flag it.

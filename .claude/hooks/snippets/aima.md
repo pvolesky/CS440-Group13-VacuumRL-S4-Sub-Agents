@@ -1,1 +1,0 @@
-- AIMA: RL is Ch. 22 (4th ed.) / Ch. 21 (3rd ed.). Concept map in skill `aima-rl-reference`; it contains pointers, not pseudocode.

@@ -1,79 +1,83 @@
-# Vacuum Robot RL
+# Vacuum Robot RL (CS440 Lab)
 
-A Q-learning vacuum robot on a 4x4 gridworld where the agent does not know the transition model (T) or reward function (R):
-
-```
-[start, 0, 0,  0]
-[0,     X, 0,  0]
-[0,     0, 0,  0]
-[0,    -1, 0, 10]
-```
-
-**Status: scaffold only.** The source and test files are docstring stubs. This repository's main purpose right now is *context engineering* for Claude Code, using **isolation via sub-agents** combined with three supporting mechanisms.
-
-## Structure
+Model-free tabular Q-learning for a vacuum robot navigating a 4x4 gridworld with hidden transition ($T$) and reward ($R$) models.
 
 ```
-vacuum-rl/
-├── CLAUDE.md                     # Small, always-loaded rules (boundary, phase, delegation)
-├── README.md
-├── pyproject.toml                # Python >=3.11, numpy; dev: pytest, ruff
-├── .gitignore
-├── .claude/
-│   ├── settings.json             # Registers the UserPromptSubmit hook (committed, project-wide)
-│   ├── agents/                   # Isolated sub-agents, each with its own tools, model, and file ownership
-│   │   ├── env-designer.md           # simulator + hidden T/R boundary
-│   │   ├── q-learning-implementer.md # agent + exploration
-│   │   ├── experiment-runner.md      # training, sweeps, seeds, logging
-│   │   ├── rl-reviewer.md            # read-only correctness review
-│   │   └── docs-writer.md            # README + docs
-│   ├── hooks/
-│   │   ├── context_router.sh     # Bash; reads prompt JSON, emits matching snippets
-│   │   ├── routes.tsv            # regex -> snippet mapping (edit this to change routing)
-│   │   └── snippets/*.md         # 1-2 line hints
-│   └── skills/                   # Longer procedures, loaded on demand
-│       ├── gridworld-spec/
-│       ├── q-learning-procedure/     # process only, no solution code
-│       ├── aima-rl-reference/        # AIMA concept map
-│       ├── rl-debugging-checklist/
-│       └── experiment-protocol/
-├── src/vacuum_rl/                # Stubs: environment, agent, exploration, train, evaluate
-├── tests/                        # Stubs: environment, agent, boundary
-├── experiments/                  # Configs; results/ is git-ignored
-└── docs/DECISIONS.md             # Open and resolved design decisions
+[ Start (0,0),  (0,1),        (0,2),  (0,3)      ]
+[ (1,0),        (1,1) [X Wall],(1,2), (1,3)      ]
+[ (2,0),        (2,1),        (2,2),  (2,3)      ]
+[ (3,0),        (3,1) [-1],   (3,2),  (3,3) [+10]]
 ```
 
-## How the context-engineering pieces fit together
+---
 
-| Mechanism | Size | Loaded | Purpose |
-|---|---|---|---|
-| `CLAUDE.md` | tiny | Always | Non-negotiable rules and a delegation map |
-| `UserPromptSubmit` hook | 1-3 short snippets | Per prompt, by keyword | Nudges Claude toward the right sub-agent/skill and flags Open decisions |
-| Skills | long | On demand | Procedures, checklists, specs, AIMA pointers |
-| Sub-agents | separate context windows | When delegated | **Isolation**: noisy work (searching files, running sweeps) stays out of the main conversation; only a short summary returns |
+## Assignment Objectives & Context Engineering
 
-### Isolation design
-- **File ownership:** each sub-agent owns specific files, listed in its definition.
-- **Least privilege:** `rl-reviewer` is read-only (Read, Grep, Glob); `docs-writer` has no Bash.
-- **Model per role:** reviewer on a stronger model, docs on a cheaper one, others on a mid-tier model.
-- **Summary contract:** each sub-agent returns a short, bounded summary rather than file dumps.
-- **Boundary:** the agent/environment separation (agent never sees T or R) is enforced by CLAUDE.md, by the `env-designer` and `q-learning-implementer` scopes, and by the planned `tests/test_boundary.py`.
+This lab demonstrates **Context Engineering Strategy 4 (Isolate)**:
+1. **Model-Free Isolation Boundary:**
+   The learning agent (`QLearningAgent`) interacts strictly via `env.reset()` and `env.step(action)` tuples `(s, a, r, s', done)`. It has no knowledge of internal grid representations, wall coordinates, or transition probabilities.
+2. **Sub-agents (`.gemini/agents/`):**
+   - [`env-designer`](.gemini/agents/env-designer.md): Encapsulates grid physics, boundaries, and hidden $T, R$ dynamics in [`src/vacuum_rl/environment.py`](src/vacuum_rl/environment.py).
+   - [`q-learning-implementer`](.gemini/agents/q-learning-implementer.md): Manages policy calculation, $\epsilon$-greedy action selection, and Bellman TD updates in [`src/vacuum_rl/agent.py`](src/vacuum_rl/agent.py).
+   - [`experiment-runner`](.gemini/agents/experiment-runner.md): Manages training sweeps, logging, and evaluation metrics in [`src/vacuum_rl/train.py`](src/vacuum_rl/train.py) and [`src/vacuum_rl/evaluate.py`](src/vacuum_rl/evaluate.py).
+3. **Skills (`.gemini/skills/`):**
+   - [`q-update-rule`](.gemini/skills/q-update-rule/SKILL.md): Standardized mathematical procedure for model-free Q-learning updates.
+   - [`gridworld-spec`](.gemini/skills/gridworld-spec/SKILL.md): Gridworld dimensions, coordinates, and terminal specs.
 
-### AIMA grounding
-The task is described via PEAS (Ch. 2), modeled as a sequential decision problem (MDP chapter), and solved as model-free active RL (RL chapter) with attention to exploration vs. exploitation. See `.claude/skills/aima-rl-reference/`.
+---
 
-## Using the hook
-- Requires Bash and `grep`; uses `jq` if installed, otherwise matches against the raw JSON.
-- Test it manually: `echo '{"prompt":"tune epsilon decay"}' | .claude/hooks/context_router.sh`
-- Cap on snippets per prompt: `VACUUM_RL_MAX_SNIPPETS` (default 3).
-- Add routing: append a `regex<TAB>snippet.md` line to `routes.tsv` and create the snippet.
+## Hyperparameter Configuration
 
-## Policy on implementation
-Claude Code is configured to explain, review, and scaffold, and not to write the environment dynamics or Q-learning code unless explicitly asked (see `CLAUDE.md` rule 2 and decision D7). To change this, edit that rule.
+Configured per `GEMINI.md`:
+- **Living Reward ($R_{\text{living}}$):** `-0.01` (incentivizes shorter paths)
+- **Discount Factor ($\gamma$):** `0.9`
+- **Learning Rate ($\alpha$):** `0.1`
+- **Exploration Rate ($\epsilon$):** `0.1` ($\epsilon$-greedy)
 
-## Setup
+---
+
+## Repository Structure
+
 ```
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-pytest && ruff check .
+├── GEMINI.md                    # Lab instructions & hyperparameter specifications
+├── README.md                    # Project overview & running instructions
+├── docs/DECISIONS.md            # Architectural decisions log
+├── .gemini/
+│   ├── agents/                  # Isolated sub-agent definitions
+│   │   ├── env-designer.md
+│   │   ├── q-learning-implementer.md
+│   │   └── experiment-runner.md
+│   └── skills/                  # Procedural skills
+│       ├── q-update-rule/
+│       └── gridworld-spec/
+├── src/
+│   ├── vacuum_env.py            # Primary runner script
+│   └── vacuum_rl/
+│       ├── environment.py       # Isolated Gridworld environment (reset, step)
+│       ├── agent.py             # Model-free QLearningAgent
+│       ├── exploration.py       # Epsilon-greedy action selection
+│       ├── train.py             # Training loop
+│       └── evaluate.py          # Greedy policy evaluation & visualizer
+├── tests/
+│   ├── test_environment.py     # Environment mechanics & boundary tests
+│   ├── test_agent.py           # TD update math & action selection tests
+│   └── test_boundary.py        # Strategy 4 isolation boundary tests
+└── experiments/
+    └── results/                 # JSON logs of training sweeps and trajectory traces
 ```
+
+---
+
+## Execution
+
+### Run Training and Evaluation
+```bash
+python3 src/vacuum_env.py
+```
+This trains the agent for 1,000 episodes, outputs the learned policy grid, and prints the step-by-step greedy trajectory from $(0, 0)$ to $(3, 3)$.
+
+### Run Unit Tests
+```bash
+python3 -m unittest discover -s tests -p "test_*.py" -v
+```
+All 12 unit tests verify environment bounds, TD update calculations, and strict architectural isolation boundaries.
