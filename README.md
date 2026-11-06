@@ -72,14 +72,21 @@ Configured per `GEMINI.md`:
 
 ## Execution
 
-### Run Training and Evaluation
-```bash
-python3 src/vacuum_env.py
-```
-This trains the agent for 1,000 episodes, outputs the learned policy grid, and prints the step-by-step greedy trajectory from $(0, 0)$ to $(3, 3)$.
+### Run Training and Evaluation (One-Click / Command)
+You can run the full program from either:
+1. **The root file:** Click the **Play (▶)** button in your editor while viewing [`main.py`](main.py), or run:
+   ```bash
+   python3 main.py
+   ```
+2. **The source entrypoint:** Click **Play (▶)** on [`src/vacuum_env.py`](src/vacuum_env.py), or run:
+   ```bash
+   python3 src/vacuum_env.py
+   ```
+
+Both options run the 1,000-episode training loop, output the **full formatted Q-table**, display the **learned policy grid**, and execute a **step-by-step greedy evaluation trace**.
 
 ### Run Unit Tests
 ```bash
 python3 -m unittest discover -s tests -p "test_*.py" -v
 ```
-All 12 unit tests verify environment bounds, TD update calculations, and strict architectural isolation boundaries.
+All 13 unit tests verify environment bounds, TD update calculations, and strict architectural isolation boundaries.

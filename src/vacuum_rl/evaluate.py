@@ -1,4 +1,4 @@
-"""Evaluation of learned policies.
+"""Evaluation of learned policies and Q-table visualization.
 
 Owner: experiment-runner sub-agent.
 """
@@ -15,7 +15,9 @@ def evaluate_agent(env, agent, max_steps=20, verbose=True):
     step_log = []
 
     if verbose:
-        print("\n--- Step-by-Step Greedy Policy Evaluation ---")
+        print("\n" + "=" * 78)
+        print("                 STEP-BY-STEP GREEDY POLICY EVALUATION")
+        print("=" * 78)
         print(f"Initial State: {state}")
 
     for step_num in range(1, max_steps + 1):
@@ -51,18 +53,57 @@ def evaluate_agent(env, agent, max_steps=20, verbose=True):
 
 def print_policy_grid(agent, rows=4, cols=4, obstacle=(1, 1), penalty=(3, 1), goal=(3, 3)):
     """Print 2D grid visual of the greedy policy."""
-    print("\nLearned Policy Actions:")
+    print("\n" + "=" * 78)
+    print("                         LEARNED POLICY GRID")
+    print("=" * 78)
     for r in range(rows):
-        row_str = ""
+        row_str = "  "
         for c in range(cols):
             pos = (r, c)
             if pos == obstacle:
-                row_str += " [ X ] "
+                row_str += " [  X  ] "
             elif pos == goal:
-                row_str += " [ G ] "
+                row_str += " [  G  ] "
             elif pos == penalty:
-                row_str += " [ -1] "
+                row_str += " [ -1  ] "
             else:
                 best_action = agent.get_best_action(pos)
-                row_str += f" [{best_action[0]}] "
+                row_str += f" [ {best_action[0]}   ] "
         print(row_str)
+    print("  Legend: [R]=Right, [D]=Down, [U]=Up, [L]=Left, [X]=Obstacle, [G]=Goal (+10), [-1]=Penalty")
+
+
+def print_q_table(agent, rows=4, cols=4, obstacle=(1, 1), penalty=(3, 1), goal=(3, 3)):
+    """Print a clean, formatted tabular breakdown of all Q-values across states."""
+    print("\n" + "=" * 82)
+    print("                                LEARNED Q-TABLE")
+    print("=" * 82)
+    print(f" {'State (r,c)':<13} | {'UP':>9} | {'DOWN':>9} | {'LEFT':>9} | {'RIGHT':>9} | {'Best':<5} | {'Max Q':>8}")
+    print("-" * 82)
+
+    for r in range(rows):
+        for c in range(cols):
+            state = (r, c)
+            label = f"({r}, {c})"
+            if state == obstacle:
+                label += " [X]"
+                print(f" {label:<13} | {'--':>9} | {'--':>9} | {'--':>9} | {'--':>9} | {'N/A':<5} | {'--':>8}")
+                continue
+            elif state == goal:
+                label += " [G]"
+            elif state == penalty:
+                label += " [-1]"
+            elif state == (0, 0):
+                label += " [Start]"
+
+            q_vals = agent.get_q_values(state)
+            up_s = f"{q_vals.get('UP', 0.0):.4f}"
+            down_s = f"{q_vals.get('DOWN', 0.0):.4f}"
+            left_s = f"{q_vals.get('LEFT', 0.0):.4f}"
+            right_s = f"{q_vals.get('RIGHT', 0.0):.4f}"
+
+            best_a = agent.get_best_action(state)
+            max_q_s = f"{q_vals.get(best_a, 0.0):.4f}"
+
+            print(f" {label:<13} | {up_s:>9} | {down_s:>9} | {left_s:>9} | {right_s:>9} | {best_a:<5} | {max_q_s:>8}")
+    print("=" * 82)
