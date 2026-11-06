@@ -32,7 +32,9 @@ Configured per `GEMINI.md`:
 - **Living Reward ($R_{\text{living}}$):** `-0.01` (incentivizes shorter paths)
 - **Discount Factor ($\gamma$):** `0.9`
 - **Learning Rate ($\alpha$):** `0.1`
-- **Exploration Rate ($\epsilon$):** `0.1` ($\epsilon$-greedy)
+- **Epsilon Initial ($\epsilon_0$):** `1.0` (starts with full exploration)
+- **Epsilon Decay ($\lambda$):** `0.99` (multiplicative decay per episode)
+- **Epsilon Minimum ($\epsilon_{\min}$):** `0.01`
 
 ---
 

@@ -8,13 +8,16 @@ experience tuples. Adheres to Strategy 4 (Isolate) by never accessing environmen
 from vacuum_rl.exploration import epsilon_greedy
 
 class QLearningAgent:
-    """Model-free tabular Q-learning agent."""
+    """Model-free tabular Q-learning agent with optional epsilon decay."""
 
-    def __init__(self, actions=None, alpha=0.1, gamma=0.9, epsilon=0.1):
+    def __init__(self, actions=None, alpha=0.1, gamma=0.9, epsilon=1.0, epsilon_decay=0.99, epsilon_min=0.01):
         self.actions = actions if actions is not None else ["UP", "DOWN", "LEFT", "RIGHT"]
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        self.epsilon_initial = epsilon
+        self.epsilon_decay = epsilon_decay
+        self.epsilon_min = epsilon_min
         self.q_table = {}
 
     def get_q_values(self, state):
@@ -28,6 +31,11 @@ class QLearningAgent:
         eps = 0.0 if greedy else self.epsilon
         q_vals = self.get_q_values(state)
         return epsilon_greedy(q_vals, self.actions, epsilon=eps)
+
+    def decay_epsilon(self):
+        """Decay epsilon after an episode according to epsilon_decay."""
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        return self.epsilon
 
     def update(self, state, action, reward, next_state, done):
         """Update Q-value for experience tuple (s, a, r, s') using Bellman TD update rule.

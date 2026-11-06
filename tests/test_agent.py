@@ -10,13 +10,22 @@ from vacuum_rl.agent import QLearningAgent
 
 class TestQLearningAgent(unittest.TestCase):
     def setUp(self):
-        self.agent = QLearningAgent(alpha=0.1, gamma=0.9, epsilon=0.1)
+        self.agent = QLearningAgent(alpha=0.1, gamma=0.9, epsilon=1.0, epsilon_decay=0.99)
 
     def test_init_hyperparameters(self):
         self.assertEqual(self.agent.alpha, 0.1)
         self.assertEqual(self.agent.gamma, 0.9)
-        self.assertEqual(self.agent.epsilon, 0.1)
+        self.assertEqual(self.agent.epsilon, 1.0)
+        self.assertEqual(self.agent.epsilon_decay, 0.99)
         self.assertEqual(self.agent.actions, ["UP", "DOWN", "LEFT", "RIGHT"])
+
+    def test_epsilon_decay(self):
+        self.assertEqual(self.agent.epsilon, 1.0)
+        self.agent.decay_epsilon()
+        self.assertAlmostEqual(self.agent.epsilon, 0.99, places=4)
+        for _ in range(600):
+            self.agent.decay_epsilon()
+        self.assertGreaterEqual(self.agent.epsilon, 0.01)
 
     def test_unseen_state_initialization(self):
         q_vals = self.agent.get_q_values((0, 0))
